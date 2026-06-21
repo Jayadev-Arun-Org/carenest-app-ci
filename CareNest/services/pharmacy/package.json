@@ -1,0 +1,21 @@
+{
+  "name": "carenest-pharmacy",
+  "version": "1.0.0",
+  "description": "CareNest Pharmacy Microservice",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-validator": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.7.0",
+    "@azure/service-bus": "^7.9.4",
+    "@azure/storage-blob": "^12.24.0"
+  }
+}
