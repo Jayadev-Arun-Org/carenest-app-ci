@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # ── MongoDB ─────────────────────────────────────
+  mongo:
+    image: mongo:7
+    container_name: carenest-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Auth Service ────────────────────────────────
+  auth:
+    build: ./services/auth
+    image: jayadevarun2003/carenest-auth
+    container_name: carenest-auth
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - MONGO_URI=mongodb://mongo:27017/carenest_auth
+      - JWT_SECRET=${JWT_SECRET:-carenest_dev_secret_change_in_production}
+      - JWT_EXPIRES_IN=7d
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Appointment Service ─────────────────────────
+  appointment:
+    build: ./services/appointment
+    image: jayadevarun2003/carenest-appointment
+    container_name: carenest-appointment
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - MONGO_URI=mongodb://mongo:27017/carenest_appointments
+      - JWT_SECRET=${JWT_SECRET:-carenest_dev_secret_change_in_production}
+      - NOTIFY_SERVICE_URL=http://notify:3004
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Pharmacy Service ────────────────────────────
+  pharmacy:
+    build: ./services/pharmacy
+    image: jayadevarun2003/carenest-pharmacy
+    container_name: carenest-pharmacy
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      - PORT=3003
+      - MONGO_URI=mongodb://mongo:27017/carenest_pharmacy
+      - JWT_SECRET=${JWT_SECRET:-carenest_dev_secret_change_in_production}
+      - NOTIFY_SERVICE_URL=http://notify:3004
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Notify Service ────────────────────────────────
+  notify:
+    build: ./services/notify
+    image: jayadevarun2003/carenest-notify
+    container_name: carenest-notify
+    restart: unless-stopped
+    ports:
+      - "3004:3004"
+    environment:
+      - PORT=3004
+      - MONGO_URI=mongodb://mongo:27017/carenest_notifications
+      - JWT_SECRET=${JWT_SECRET:-carenest_dev_secret_change_in_production}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Frontend ────────────────────────────────────
+  frontend:
+    build: ./frontend
+    image: jayadevarun2003/carenest-frontend
+    container_name: carenest-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - auth
+      - appointment
+      - pharmacy
+      - notify
+
+volumes:
+  mongo_data:
