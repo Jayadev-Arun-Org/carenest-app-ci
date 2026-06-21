@@ -1,0 +1,17 @@
+{{- $services := list "auth" "appointment" "pharmacy" "notify" "frontend" "mongo" "redis" }}
+{{- range $svc := $services }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $svc }}-pdb
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: {{ $svc }}
+    app.kubernetes.io/name: carenest
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: {{ $svc }}
+{{- end }}

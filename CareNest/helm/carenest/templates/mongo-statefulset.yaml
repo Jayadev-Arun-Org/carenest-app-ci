@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mongo
+    app.kubernetes.io/name: carenest
+spec:
+  serviceName: mongo-service
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: mongo
+          image: {{ .Values.images.mongo }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ports.mongo }}
+              name: mongo
+          resources:
+            requests:
+              cpu: {{ .Values.resources.mongo.requests.cpu }}
+              memory: {{ .Values.resources.mongo.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.mongo.limits.cpu }}
+              memory: {{ .Values.resources.mongo.limits.memory }}
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand('ping')"
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: mongo-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        {{- if .Values.mongo.storageClass }}
+        storageClassName: {{ .Values.mongo.storageClass | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.mongo.storageSize }}

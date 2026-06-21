@@ -1,0 +1,153 @@
+# ──────────────────────────────────────────────────────
+# CareNest Helm Values
+# ──────────────────────────────────────────────────────
+
+# Global
+namespace: carenest-dev
+environment: dev
+
+# ── Docker Images ─────────────────────────────────────
+images:
+  auth: jayadevarun2003/carenest-auth
+  appointment: jayadevarun2003/carenest-appointment
+  pharmacy: jayadevarun2003/carenest-pharmacy
+  notify: jayadevarun2003/carenest-notify
+  frontend: jayadevarun2003/carenest-frontend
+  mongo: mongo:7
+  redis: redis:7-alpine
+  haproxy: haproxytech/haproxy-alpine:2.9
+  pullPolicy: Always
+
+# ── Replicas ──────────────────────────────────────────
+replicas:
+  auth: 2
+  appointment: 2
+  pharmacy: 2
+  notify: 2
+  frontend: 2
+  redis: 1
+
+# ── Ports ─────────────────────────────────────────────
+ports:
+  auth: 3001
+  appointment: 3002
+  pharmacy: 3003
+  notify: 3004
+  frontend: 80
+  mongo: 27017
+  redis: 6379
+  haproxy: 80
+
+# ── Gateway (Envoy Gateway) ──────────────────────────
+gateway:
+  # GatewayClass name — run `kubectl get gatewayclasses` to verify
+  # Envoy Gateway Helm chart creates "eg" by default
+  className: envoy-gateway-class
+  # NodePort for external HAProxy EC2 to reach the Gateway
+  nodePort: 30080
+  # Port the Gateway listens on
+  port: 80
+  name: carenest-gateway
+
+# ── HAProxy (in-cluster — disabled when using external EC2) ─
+haproxy:
+  # Set to true ONLY if you want HAProxy inside the cluster
+  # When using a separate HAProxy EC2, keep this false
+  enabled: false
+  serviceType: LoadBalancer
+
+# ── Worker Nodes (for HAProxy EC2 config) ─────────────
+# Replace with your actual worker node private IPs
+workerNodes:
+  - ip: "WORKER_NODE_1_PRIVATE_IP"
+  - ip: "WORKER_NODE_2_PRIVATE_IP"
+
+# ── Resources ─────────────────────────────────────────
+resources:
+  auth:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  appointment:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  pharmacy:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  notify:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  frontend:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  mongo:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  redis:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+  haproxy:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+# ── MongoDB ───────────────────────────────────────────
+mongo:
+  storageSize: 5Gi
+  storageClass: local-path  # leave empty for default
+
+# ── Config (non-sensitive) ────────────────────────────
+config:
+  jwtExpiresIn: "7d"
+  nodeEnv: "production"
+
+# ── Secrets (base64 encoded) ──────────────────────────
+secrets:
+  jwtSecret: "Y2FyZW5lc3RfcHJvZF9zZWNyZXRfY2hhbmdlX21l"  # carenest_prod_secret_change_me
+
+# ── HPA (Frontend only) ──────────────────────────────
+hpa:
+  frontend:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUPercent: 70
+
+# ── Health Probes ─────────────────────────────────────
+probes:
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# ── Graceful Shutdown ─────────────────────────────────
+terminationGracePeriodSeconds: 30

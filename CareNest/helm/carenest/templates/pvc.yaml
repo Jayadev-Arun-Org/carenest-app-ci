@@ -1,0 +1,18 @@
+# PVC is managed via volumeClaimTemplates in mongo-statefulset.yaml
+# This file provides an optional standalone PVC for additional storage needs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: carenest-shared-pvc
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: carenest
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.mongo.storageClass }}
+  storageClassName: {{ .Values.mongo.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.mongo.storageSize }}

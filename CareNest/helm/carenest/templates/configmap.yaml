@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: carenest-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: carenest
+data:
+  NODE_ENV: {{ .Values.config.nodeEnv | quote }}
+  JWT_EXPIRES_IN: {{ .Values.config.jwtExpiresIn | quote }}
+  AUTH_PORT: {{ .Values.ports.auth | quote }}
+  APPOINTMENT_PORT: {{ .Values.ports.appointment | quote }}
+  PHARMACY_PORT: {{ .Values.ports.pharmacy | quote }}
+  NOTIFY_PORT: {{ .Values.ports.notify | quote }}
+  MONGO_PORT: {{ .Values.ports.mongo | quote }}
+  REDIS_PORT: {{ .Values.ports.redis | quote }}
+  NOTIFY_SERVICE_URL: "http://notify-service:{{ .Values.ports.notify }}"
+  REDIS_URL: "redis://redis-service:{{ .Values.ports.redis }}"

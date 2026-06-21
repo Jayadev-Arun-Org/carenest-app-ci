@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notify-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: notify
+    app.kubernetes.io/name: carenest
+spec:
+  type: ClusterIP
+  selector:
+    app: notify
+  ports:
+    - port: {{ .Values.ports.notify }}
+      targetPort: {{ .Values.ports.notify }}
+      name: http

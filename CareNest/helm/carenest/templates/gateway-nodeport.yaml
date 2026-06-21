@@ -1,0 +1,8 @@
+# ============================================================
+# Gateway NodePort Service — DISABLED
+# Envoy Gateway auto-creates its own NodePort service in
+# envoy-gateway-system namespace. We use that instead.
+# Auto-created service: envoy-carenest-dev-carenest-gateway-xxxx
+# Port: 30386
+# ============================================================
+# This file intentionally left empty to avoid port conflicts.

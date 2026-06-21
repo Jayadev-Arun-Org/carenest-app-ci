@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: mongo
+    app.kubernetes.io/name: carenest
+spec:
+  clusterIP: None
+  selector:
+    app: mongo
+  ports:
+    - port: {{ .Values.ports.mongo }}
+      targetPort: {{ .Values.ports.mongo }}
+      name: mongo

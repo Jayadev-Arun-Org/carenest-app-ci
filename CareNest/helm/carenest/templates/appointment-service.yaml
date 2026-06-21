@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: appointment-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: appointment
+    app.kubernetes.io/name: carenest
+spec:
+  type: ClusterIP
+  selector:
+    app: appointment
+  ports:
+    - port: {{ .Values.ports.appointment }}
+      targetPort: {{ .Values.ports.appointment }}
+      name: http

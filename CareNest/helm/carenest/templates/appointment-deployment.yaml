@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appointment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: appointment
+    app.kubernetes.io/name: carenest
+spec:
+  replicas: {{ .Values.replicas.appointment }}
+  selector:
+    matchLabels:
+      app: appointment
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: appointment
+    spec:
+      serviceAccountName: carenest-sa
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      initContainers:
+        - name: wait-for-mongo
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              until nc -z mongo-service {{ .Values.ports.mongo }}; do
+                echo "Waiting for MongoDB..."
+                sleep 2
+              done
+              echo "MongoDB is ready!"
+      containers:
+        - name: appointment
+          image: {{ .Values.images.appointment }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ports.appointment }}
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: carenest-config
+                  key: APPOINTMENT_PORT
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: carenest-config
+                  key: NODE_ENV
+            - name: NOTIFY_SERVICE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: carenest-config
+                  key: NOTIFY_SERVICE_URL
+            - name: MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: carenest-secrets
+                  key: MONGO_URI_APPOINTMENT
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: carenest-secrets
+                  key: JWT_SECRET
+          resources:
+            requests:
+              cpu: {{ .Values.resources.appointment.requests.cpu }}
+              memory: {{ .Values.resources.appointment.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.appointment.limits.cpu }}
+              memory: {{ .Values.resources.appointment.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.ports.appointment }}
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.ports.appointment }}
+            initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.failureThreshold }}

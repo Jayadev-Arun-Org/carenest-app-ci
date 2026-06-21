@@ -1,0 +1,119 @@
+# ──────────────────────────────────────────────────────
+# HAProxy — In-cluster deployment (OPTIONAL)
+# ──────────────────────────────────────────────────────
+# DISABLED BY DEFAULT when using external HAProxy EC2.
+# Set haproxy.enabled=true in values.yaml to enable.
+#
+# When using an external HAProxy EC2 instance, this entire
+# file is skipped. Use helm/carenest/haproxy-ec2.cfg for
+# the external EC2 HAProxy configuration instead.
+# ──────────────────────────────────────────────────────
+{{- if .Values.haproxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: haproxy-config
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: haproxy
+    app.kubernetes.io/name: carenest
+data:
+  haproxy.cfg: |
+    global
+      log stdout format raw local0
+      maxconn 4096
+
+    defaults
+      mode http
+      log global
+      option httplog
+      option dontlognull
+      timeout connect 5000ms
+      timeout client  50000ms
+      timeout server  50000ms
+      retries 3
+
+    frontend http_front
+      bind *:80
+      default_backend envoy_backend
+
+    backend envoy_backend
+      balance roundrobin
+      option httpchk GET /
+      # Target the Envoy Gateway proxy service (auto-created)
+      server envoy envoy-carenest-gateway-{{ .Values.namespace }}.{{ .Values.namespace }}.svc.cluster.local:{{ .Values.gateway.port }} check inter 5s fall 3 rise 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: haproxy
+    app.kubernetes.io/name: carenest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: haproxy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: haproxy
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: haproxy
+          image: {{ .Values.images.haproxy }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: {{ .Values.resources.haproxy.requests.cpu }}
+              memory: {{ .Values.resources.haproxy.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.haproxy.limits.cpu }}
+              memory: {{ .Values.resources.haproxy.limits.memory }}
+          volumeMounts:
+            - name: haproxy-cfg
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+      volumes:
+        - name: haproxy-cfg
+          configMap:
+            name: haproxy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: haproxy-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: haproxy
+    app.kubernetes.io/name: carenest
+spec:
+  type: {{ .Values.haproxy.serviceType }}
+  selector:
+    app: haproxy
+  ports:
+    - port: {{ .Values.ports.haproxy }}
+      targetPort: 80
+      name: http
+{{- end }}

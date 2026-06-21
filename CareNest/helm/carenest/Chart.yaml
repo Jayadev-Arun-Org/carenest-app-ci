@@ -1,0 +1,13 @@
+apiVersion: v2
+name: carenest
+description: CareNest — Production-ready healthcare microservices platform
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - healthcare
+  - microservices
+  - kubernetes
+  - helm
+maintainers:
+  - name: Jayadev Arun

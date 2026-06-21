@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: frontend
+    app.kubernetes.io/name: carenest
+spec:
+  replicas: {{ .Values.replicas.frontend }}
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      serviceAccountName: carenest-sa
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: frontend
+          image: {{ .Values.images.frontend }}
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.ports.frontend }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.frontend.requests.cpu }}
+              memory: {{ .Values.resources.frontend.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.frontend.limits.cpu }}
+              memory: {{ .Values.resources.frontend.limits.memory }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.ports.frontend }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.ports.frontend }}
+            initialDelaySeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 3
