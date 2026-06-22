@@ -37,7 +37,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.organization=Jayadev-Arun-Org
+            -Dsonar.organization=jayadev-arun-org
             -Dsonar.projectKey=Jayadev-Arun-Org_carenest-app-ci
 
       - name: Run Snyk to check for vulnerabilities
