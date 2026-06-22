@@ -103,3 +103,13 @@ jobs:
           repository: Jayadev-Arun-Org/carenest-helm-cd
           event-type: update-images
           client-payload: '{"image_tag": "${{ github.sha }}"}'
+
+      - name: Pipeline Status Notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow,job,took
+          text: 'Application CI/CD Pipeline finished with status: ${{ job.status }}'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
