@@ -35,6 +35,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.organization=Jayadev-Arun-Org
+            -Dsonar.projectKey=jayadev-arun-org
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
