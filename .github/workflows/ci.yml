@@ -23,12 +23,12 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          cd CareNest/Frontend && npm install
-          cd ../Backend/ai-service && npm install
-          cd ../appointment-service && npm install
-          cd ../auth-service && npm install
-          cd ../notify-service && npm install
-          cd ../pharmacy-service && npm install
+          cd CareNest/frontend && npm install
+          cd ../services/ai && npm install
+          cd ../appointment && npm install
+          cd ../auth && npm install
+          cd ../notify && npm install
+          cd ../pharmacy && npm install
 
       - name: SonarQube Cloud Scan
         uses: SonarSource/sonarcloud-github-action@master
@@ -51,7 +51,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     strategy:
       matrix:
-        service: ['Frontend', 'Backend/ai-service', 'Backend/appointment-service', 'Backend/auth-service', 'Backend/notify-service', 'Backend/pharmacy-service']
+        service: ['frontend', 'services/ai', 'services/appointment', 'services/auth', 'services/notify', 'services/pharmacy']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
