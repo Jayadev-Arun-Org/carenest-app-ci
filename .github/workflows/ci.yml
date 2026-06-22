@@ -38,7 +38,7 @@ jobs:
         with:
           args: >
             -Dsonar.organization=Jayadev-Arun-Org
-            -Dsonar.projectKey=jayadev-arun-org
+            -Dsonar.projectKey=Jayadev-Arun-Org_carenest-app-ci
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
