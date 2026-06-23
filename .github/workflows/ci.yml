@@ -55,7 +55,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     strategy:
       matrix:
-        service: ['frontend', 'services/ai', 'services/appointment', 'services/auth', 'services/notify', 'services/pharmacy']
+        service: ['frontend', 'services/ai', 'services/aiops', 'services/appointment', 'services/auth', 'services/notify', 'services/pharmacy']
     steps:
       - name: Checkout
         uses: actions/checkout@v3
