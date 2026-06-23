@@ -1,8 +1,17 @@
 import os
 import smtplib
 import json
+import socket
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+
+# Monkey-patch socket to force IPv4 resolution
+# This fixes "Network is unreachable" when the cluster has no IPv6 route to smtp.gmail.com
+_orig_getaddrinfo = socket.getaddrinfo
+def _getaddrinfo_ipv4(host, port, family=0, type=0, proto=0, flags=0):
+    return _orig_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+socket.getaddrinfo = _getaddrinfo_ipv4
+
 from azure.identity import DefaultAzureCredential
 from azure.monitor.query import LogsQueryClient
 from openai import OpenAI
