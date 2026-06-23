@@ -75,13 +75,20 @@ Output exactly a JSON object with the following schema:
 }}
 """
     try:
-        # We must use the langfuse wrapper to trace
-        from langfuse.openai import OpenAI as LangfuseOpenAI
-        lf_client = LangfuseOpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        from langfuse.openai import AzureOpenAI as LangfuseAzureOpenAI
+        
+        # Pull Azure endpoint from environment variable if available, else hardcode the one from terraform
+        azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT", "https://jd-carenest-new-openai.openai.azure.com/")
+        
+        lf_client = LangfuseAzureOpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+            api_version="2024-02-01",
+            azure_endpoint=azure_endpoint
+        )
         
         response = lf_client.chat.completions.create(
             name="aks-metrics-analysis",
-            model="gpt-4o",
+            model="gpt-4o", # Model deployment name in Azure OpenAI is typically gpt-4o
             messages=[
                 {"role": "system", "content": "You are a helpful AIOps agent."},
                 {"role": "user", "content": prompt}
