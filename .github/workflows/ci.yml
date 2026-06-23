@@ -46,7 +46,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           command: monitor
-          args: --all-projects --exclude=CareNest/services/aiops
+          args: --all-projects --exclude=aiops
 
   build-and-push:
     name: 'Build, Scan, Push'
