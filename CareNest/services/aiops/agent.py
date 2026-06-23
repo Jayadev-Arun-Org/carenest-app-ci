@@ -26,12 +26,12 @@ def query_aks_metrics():
         credential = DefaultAzureCredential()
         client = LogsQueryClient(credential)
         
-        # Query InsightsMetrics for CPU and Memory from the last 15 mins
+        # Query Perf for CPU and Memory from the last 15 mins (AKS Container Insights)
         query = """
-        InsightsMetrics
+        Perf
         | where TimeGenerated > ago(15m)
-        | where Namespace == "Processor" or Namespace == "Memory"
-        | summarize Average=avg(Val), Max=max(Val) by Computer, Namespace, Name
+        | where ObjectName == 'K8SNode' and (CounterName == 'cpuUsageNanoCores' or CounterName == 'cpuCapacityNanoCores' or CounterName == 'memoryWorkingSetBytes' or CounterName == 'memoryCapacityBytes')
+        | summarize Average=avg(CounterValue) by Computer, ObjectName, CounterName
         """
         response = client.query_workspace(workspace_id=WORKSPACE_ID, query=query, timespan=datetime.timedelta(minutes=15))
         
@@ -62,8 +62,8 @@ Metrics Data:
 {json.dumps(metrics_data, indent=2)}
 
 Rules:
-1. If CPU Usage (Processor) is consistently near or above 80%, that is an anomaly.
-2. If Memory Usage is consistently near or above 80%, that is an anomaly.
+1. CPU Usage % = (cpuUsageNanoCores / cpuCapacityNanoCores) * 100. If this is consistently near or above 80% for any node, that is an anomaly.
+2. Memory Usage % = (memoryWorkingSetBytes / memoryCapacityBytes) * 100. If this is consistently near or above 80% for any node, that is an anomaly.
 3. If data is missing, state that it's healthy for now but flag missing data.
 
 Output exactly a JSON object with the following schema:
