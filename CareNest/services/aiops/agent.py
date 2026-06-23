@@ -122,8 +122,8 @@ def send_alert_email(analysis_result):
         
         msg.attach(MIMEText(body, 'html'))
         
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
+        # Use SMTP_SSL on port 465 because Azure blocks outbound port 587
+        server = smtplib.SMTP_SSL(SMTP_SERVER, 465)
         server.login(SMTP_USERNAME, SMTP_PASSWORD)
         text = msg.as_string()
         server.sendmail(SMTP_USERNAME, ALERT_EMAIL_TO, text)
