@@ -71,9 +71,11 @@ Metrics Data:
 {json.dumps(metrics_data, indent=2)}
 
 Rules:
-1. CPU Usage % = (cpuUsageNanoCores / cpuCapacityNanoCores) * 100. If this is consistently near or above 80% for any node, that is an anomaly.
-2. Memory Usage % = (memoryWorkingSetBytes / memoryCapacityBytes) * 100. If this is consistently near or above 80% for any node, that is an anomaly.
-3. If data is missing, state that it's healthy for now but flag missing data.
+1. CPU Usage % = (cpuUsageNanoCores / cpuCapacityNanoCores) * 100.
+2. Memory Usage % = (memoryWorkingSetBytes / memoryCapacityBytes) * 100.
+3. If ANY node has CPU or Memory usage STRICTLY > 80%, that is an anomaly.
+4. CRITICAL: If ALL nodes are UNDER 80% for both CPU and Memory, you MUST set "alert_required" to false, and "severity" to "None". Do NOT trigger an alert for "approaching" 80%.
+5. If data is missing, state that it's healthy for now but flag missing data.
 
 Output exactly a JSON object with the following schema:
 {{
