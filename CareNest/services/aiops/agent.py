@@ -112,6 +112,25 @@ Output exactly a JSON object with the following schema:
         print(f"LLM Analysis failed: {e}")
         return None
 
+def send_webhook_alert(analysis_text):
+    webhook_url = os.environ.get('SLACK_WEBHOOK_URL')
+    if not webhook_url:
+        print("No SLACK_WEBHOOK_URL provided, skipping webhook alert.")
+        return
+        
+    payload = {
+        "text": f"🚨 *AIOps Alert Triggered* 🚨\n\n{analysis_text}"
+    }
+    
+    print("Sending webhook alert...")
+    try:
+        import requests
+        response = requests.post(webhook_url, json=payload, timeout=10)
+        response.raise_for_status()
+        print("Webhook alert sent successfully!")
+    except Exception as e:
+        print(f"Failed to send webhook alert: {e}")
+
 def send_alert_email(analysis_result):
     print("Sending alert email...")
     try:
@@ -153,8 +172,9 @@ def main():
             print(json.dumps(analysis, indent=2))
             
             if analysis.get("alert_required"):
-                print("Alert condition met! Triggering email...")
+                print("Alert condition met! Triggering email and webhook...")
                 send_alert_email(analysis)
+                send_webhook_alert(analysis.get("analysis"))
             else:
                 print("Cluster is healthy. No alert required.")
         else:

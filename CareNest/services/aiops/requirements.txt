@@ -3,3 +3,4 @@ azure-monitor-query
 openai
 langfuse
 pydantic
+requests
